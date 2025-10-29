@@ -183,7 +183,8 @@ class TestFeatureScaling:
         # Check that mean is approximately 0 and std is approximately 1
         for col in scaled_df.select_dtypes(include=[np.number]).columns:
             assert abs(scaled_df[col].mean()) < 1e-10
-            assert abs(scaled_df[col].std() - 1.0) < 1e-10
+            # Use ddof=0 to match StandardScaler's population std behavior
+            assert abs(scaled_df[col].std(ddof=0) - 1.0) < 1e-10
 
     def test_scale_features_transform(self, sample_dataframe):
         """Test transforming with existing scaler."""

@@ -37,7 +37,6 @@ models:
     kernel: "rbf"
     gamma: "auto"
     nu: 0.03  # Expected proportion of outliers (1-5%)
-    random_state: 42
 
   # Isolation Forest
   isolation_forest:

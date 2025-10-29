@@ -43,7 +43,6 @@ def sample_config():
                 "kernel": "rbf",
                 "gamma": "auto",
                 "nu": 0.1,
-                "random_state": 42,
             },
             "isolation_forest": {
                 "enabled": True,

@@ -122,13 +122,12 @@ class AnomalyDetector:
         kernel = svm_config.get("kernel", "rbf")
         gamma = svm_config.get("gamma", "auto")
         nu = svm_config.get("nu", 0.03)
-        random_state = svm_config.get("random_state", 42)
 
         numeric_cols = df.select_dtypes(include=[np.number]).columns
         X = df[numeric_cols].values
 
-        # Train One-Class SVM
-        model = OneClassSVM(kernel=kernel, gamma=gamma, nu=nu, random_state=random_state)
+        # Train One-Class SVM (Note: OneClassSVM does not support random_state)
+        model = OneClassSVM(kernel=kernel, gamma=gamma, nu=nu)
         labels = model.fit_predict(X)
 
         n_samples = len(df)
