@@ -5,7 +5,10 @@ import pandas as pd
 import pytest
 
 from src.preprocessing import (
+    get_feature_statistics,
     handle_missing_values,
+    load_data,
+    preprocess_data,
     remove_duplicates,
     remove_infinite_values,
     scale_features,
@@ -196,3 +199,165 @@ class TestFeatureScaling:
 
         assert scaled_df.shape == sample_dataframe.shape
         assert returned_scaler is scaler
+
+
+class TestLoadData:
+    """Test data loading functions."""
+
+    def test_load_data_success(self, tmp_path):
+        """Test successful data loading."""
+        # Create test CSV
+        test_file = tmp_path / "test.csv"
+        df = pd.DataFrame(
+            {
+                "Engine RPM": [1000, 2000, 3000],
+                "Lubrication oil pressure": [10, 20, 30],
+            }
+        )
+        df.to_csv(test_file, index=False)
+
+        config = {
+            "data": {
+                "columns": ["Engine RPM", "Lubrication oil pressure"]
+            }
+        }
+
+        loaded_df = load_data(str(test_file), config)
+
+        assert len(loaded_df) == 3
+        assert list(loaded_df.columns) == ["Engine RPM", "Lubrication oil pressure"]
+
+    def test_load_data_missing_file(self):
+        """Test loading non-existent file."""
+        config = {"data": {"columns": []}}
+
+        with pytest.raises(FileNotFoundError):
+            load_data("nonexistent.csv", config)
+
+    def test_load_data_missing_columns(self, tmp_path):
+        """Test loading data with missing required columns."""
+        # Create test CSV
+        test_file = tmp_path / "test.csv"
+        df = pd.DataFrame({"col1": [1, 2, 3]})
+        df.to_csv(test_file, index=False)
+
+        config = {
+            "data": {
+                "columns": ["col1", "col2", "col3"]  # col2 and col3 missing
+            }
+        }
+
+        with pytest.raises(ValueError, match="Missing required columns"):
+            load_data(str(test_file), config)
+
+
+class TestFeatureStatistics:
+    """Test feature statistics calculation."""
+
+    def test_get_feature_statistics(self):
+        """Test calculating feature statistics."""
+        df = pd.DataFrame(
+            {
+                "feature1": [1, 2, 3, 4, 5],
+                "feature2": [10, 20, 30, 40, 50],
+            }
+        )
+
+        stats = get_feature_statistics(df)
+
+        assert "mean" in stats.columns
+        assert "std" in stats.columns
+        assert "min" in stats.columns
+        assert "max" in stats.columns
+        assert "missing" in stats.columns
+        assert "skewness" in stats.columns
+        assert "kurtosis" in stats.columns
+        assert len(stats) == 2  # Two features
+
+    def test_get_feature_statistics_with_missing(self):
+        """Test statistics with missing values."""
+        df = pd.DataFrame(
+            {
+                "feature1": [1, 2, None, 4, 5],
+                "feature2": [10, None, None, 40, 50],
+            }
+        )
+
+        stats = get_feature_statistics(df)
+
+        assert stats.loc["feature1", "missing"] == 1
+        assert stats.loc["feature2", "missing"] == 2
+
+
+class TestPreprocessData:
+    """Test complete preprocessing pipeline."""
+
+    def test_preprocess_data_complete_pipeline(self):
+        """Test full preprocessing pipeline."""
+        df = pd.DataFrame(
+            {
+                "feature1": [1, 2, 3, 4, 5, 5],  # Duplicate row
+                "feature2": [10, 20, 30, 40, 50, 50],  # Duplicate row
+            }
+        )
+
+        config = {
+            "preprocessing": {
+                "handle_missing": "drop",
+                "scaling": True,
+            }
+        }
+
+        processed_df, scaler = preprocess_data(df, config)
+
+        # Should have removed duplicate
+        assert len(processed_df) == 5
+        # Should be scaled
+        assert scaler is not None
+        # Mean should be ~0
+        assert abs(processed_df["feature1"].mean()) < 1e-10
+
+    def test_preprocess_data_no_scaling(self):
+        """Test preprocessing without scaling."""
+        df = pd.DataFrame(
+            {
+                "feature1": [1, 2, 3, 4, 5],
+                "feature2": [10, 20, 30, 40, 50],
+            }
+        )
+
+        config = {
+            "preprocessing": {
+                "handle_missing": "drop",
+                "scaling": False,
+            }
+        }
+
+        processed_df, scaler = preprocess_data(df, config)
+
+        assert scaler is None
+        # Data should not be scaled
+        assert processed_df["feature1"].mean() == 3.0
+
+    def test_preprocess_data_fill_mean(self):
+        """Test preprocessing with fill_mean."""
+        df = pd.DataFrame(
+            {
+                "feature1": [1.0, 2.0, None, 4.0, 5.0],
+                "feature2": [10.0, 20.0, 30.0, 40.0, 50.0],
+            }
+        )
+
+        config = {
+            "preprocessing": {
+                "handle_missing": "fill_mean",
+                "scaling": False,
+            }
+        }
+
+        processed_df, scaler = preprocess_data(df, config)
+
+        # Should have no missing values
+        assert processed_df.isnull().sum().sum() == 0
+        # Missing value should be filled with mean
+        assert processed_df["feature1"].iloc[2] == 3.0  # Mean of [1, 2, 4, 5]

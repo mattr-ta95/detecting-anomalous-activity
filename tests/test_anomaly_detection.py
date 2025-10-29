@@ -153,3 +153,112 @@ class TestAnomalySummary:
         summary_df = create_anomaly_summary(results)
 
         assert len(summary_df) == 0
+
+    def test_create_anomaly_summary_partial(self):
+        """Test creating summary with partial results."""
+        results = {
+            "iqr": {"n_anomalies": 5, "percentage": 5.0},
+        }
+
+        summary_df = create_anomaly_summary(results)
+
+        assert len(summary_df) == 1
+        assert summary_df.iloc[0]["Method"] == "Iqr"
+
+
+class TestGenerateRecommendations:
+    """Test recommendation generation."""
+
+    def test_generate_recommendations_high_anomaly_rate(self, sample_config):
+        """Test recommendations with high anomaly rate."""
+        detector = AnomalyDetector(sample_config)
+
+        results = {
+            "total_samples": 100,
+            "iqr": {
+                "n_anomalies": 10,
+                "percentage": 10.0,
+                "top_features": ["Engine RPM", "Temperature"],
+            },
+        }
+
+        recommendations = detector._generate_recommendations(results)
+
+        # Should recommend investigating sensor calibration
+        assert any("calibration" in rec.lower() for rec in recommendations)
+        # Should mention top features
+        assert any("Engine RPM" in rec for rec in recommendations)
+
+    def test_generate_recommendations_consensus_anomalies(self, sample_config):
+        """Test recommendations with consensus anomalies."""
+        detector = AnomalyDetector(sample_config)
+
+        results = {
+            "total_samples": 100,
+            "iqr": {
+                "labels": np.array([1, -1, -1, 1, 1]),
+                "percentage": 2.0,
+                "top_features": ["feature1"],
+            },
+            "one_class_svm": {
+                "labels": np.array([1, -1, -1, 1, 1]),
+                "percentage": 2.0,
+            },
+            "isolation_forest": {
+                "labels": np.array([1, -1, -1, 1, 1]),
+                "percentage": 2.0,
+            },
+        }
+
+        recommendations = detector._generate_recommendations(results)
+
+        # Should mention consensus anomalies
+        assert any("flagged by all three methods" in rec for rec in recommendations)
+
+
+class TestAnomalyDetectorEdgeCases:
+    """Test edge cases in anomaly detection."""
+
+    def test_detect_all_anomalies_disabled_methods(self, sample_dataframe):
+        """Test with some methods disabled."""
+        config = {
+            "models": {
+                "iqr": {"enabled": False},
+                "one_class_svm": {"enabled": True, "kernel": "rbf", "gamma": "auto", "nu": 0.1},
+                "isolation_forest": {
+                    "enabled": True,
+                    "n_estimators": 100,
+                    "contamination": 0.1,
+                    "random_state": 42,
+                },
+            },
+            "pca": {"enabled": True, "n_components": 2, "random_state": 42},
+        }
+
+        detector = AnomalyDetector(config)
+        results, pca_data = detector.detect_all_anomalies(sample_dataframe)
+
+        # IQR should not be in results
+        assert "iqr" not in results
+        # Other methods should be present
+        assert "one_class_svm" in results
+        assert "isolation_forest" in results
+
+    def test_detect_all_anomalies_no_pca(self, sample_dataframe):
+        """Test with PCA disabled."""
+        config = {
+            "models": {
+                "iqr": {"enabled": True, "multiplier": 1.5, "min_outlier_features": 2},
+                "one_class_svm": {"enabled": False},
+                "isolation_forest": {"enabled": False},
+            },
+            "pca": {"enabled": False},
+        }
+
+        detector = AnomalyDetector(config)
+        results, pca_data = detector.detect_all_anomalies(sample_dataframe)
+
+        # PCA data should be None
+        assert pca_data is None
+        # IQR results should be present
+        assert "iqr" in results
