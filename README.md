@@ -29,13 +29,18 @@ The system analyzes six critical engine parameters:
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
-cd ship-engine-anomaly-detection
+git clone https://github.com/mattr-ta95/detecting-anomalous-activity.git
+cd detecting-anomalous-activity
 ```
 
 2. Install required dependencies:
 ```bash
 pip install -r requirements.txt
+```
+
+3. (Optional) Install the package:
+```bash
+pip install -e .
 ```
 
 ## Usage
@@ -97,37 +102,108 @@ All methods consistently identify the expected 1-5% anomaly rate, with key findi
 
 ## Technical Details
 
-- **Language**: Python 3.7+
-- **Key Libraries**: pandas, numpy, scikit-learn, matplotlib, seaborn
-- **Data Source**: Remote CSV file from GitHub
+- **Language**: Python 3.8-3.11
+- **Key Libraries**: pandas, numpy, scikit-learn, matplotlib, seaborn, PyYAML
+- **Data Source**: Remote CSV file from GitHub (with checksum verification support)
 - **Processing**: StandardScaler for feature normalization
 - **Visualization**: Matplotlib and Seaborn for comprehensive plotting
+- **Configuration**: YAML-based configuration with extensive customization options
+- **Security**: Input validation, checksum verification, and secure data handling
 
 ## File Structure
 
 ```
-ship-engine-anomaly-detection/
-├── README.md                           # Project documentation
-├── requirements.txt                    # Python dependencies
-├── ship_engine_anomaly_detection.py   # Main analysis script
-└── engine.csv                         # Dataset (downloaded automatically)
+detecting-anomalous-activity/
+├── .github/
+│   └── workflows/              # CI/CD pipelines
+├── data/
+│   ├── raw/                   # Original dataset
+│   └── processed/             # Processed data
+├── src/                       # Source code
+│   ├── __init__.py
+│   ├── anomaly_detection.py   # Anomaly detection algorithms
+│   ├── preprocessing.py       # Data preprocessing
+│   ├── visualization.py       # Plotting functions
+│   └── utils.py              # Utility functions
+├── tests/                     # Test suite
+│   ├── __init__.py
+│   ├── test_anomaly_detection.py
+│   ├── test_preprocessing.py
+│   └── test_utils.py
+├── notebooks/                 # Jupyter notebooks
+│   └── anomaly_detection_example.ipynb
+├── results/                   # Output directory
+│   ├── plots/                # Generated plots
+│   └── reports/              # Analysis reports
+├── .gitignore                # Git ignore file
+├── LICENSE                   # MIT License
+├── README.md                 # Project documentation
+├── config.yaml               # Configuration file
+├── pytest.ini                # Pytest configuration
+├── requirements.txt          # Python dependencies
+├── setup.py                  # Package installation
+└── ship_engine_anomaly_detection.py  # Main script
 ```
 
 ## Dependencies
 
-- pandas >= 1.3.0
-- numpy >= 1.21.0
-- scikit-learn >= 1.0.0
-- matplotlib >= 3.4.0
-- seaborn >= 0.11.0
+### Core Dependencies
+- numpy == 1.24.3
+- pandas == 2.0.3
+- scikit-learn == 1.3.0
+- matplotlib == 3.7.2
+- seaborn == 0.12.2
+- PyYAML == 6.0.1
+- requests == 2.31.0
+
+### Development Dependencies
+- pytest == 7.4.0
+- pytest-cov == 4.1.0
+- black == 23.7.0
+- flake8 == 6.1.0
+- mypy == 1.4.1
+
+See `requirements.txt` for the complete list.
+
+## Development
+
+### Running Tests
+
+```bash
+# Run all tests
+pytest
+
+# Run with coverage report
+pytest --cov=src --cov-report=html
+
+# Run specific test file
+pytest tests/test_anomaly_detection.py
+```
+
+### Code Quality
+
+```bash
+# Format code with black
+black src/ tests/
+
+# Lint with flake8
+flake8 src/ tests/
+
+# Type checking with mypy
+mypy src/
+```
 
 ## Contributing
 
 1. Fork the repository
-2. Create a feature branch
+2. Create a feature branch (`git checkout -b feature/your-feature`)
 3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
+4. Add tests for new functionality
+5. Ensure all tests pass (`pytest`)
+6. Format code (`black .`)
+7. Submit a pull request
+
+Please ensure your code follows PEP 8 guidelines and includes appropriate tests.
 
 ## License
 
@@ -138,9 +214,26 @@ This project is open source and available under the MIT License.
 **Matthew Russell**  
 Data Science & Machine Learning Engineer
 
+## Troubleshooting
+
+### Common Issues
+
+1. **Dataset download fails**
+   - Check internet connection
+   - Verify URL in `config.yaml` is accessible
+   - Try downloading manually and placing in `data/raw/`
+
+2. **Import errors**
+   - Ensure all dependencies are installed: `pip install -r requirements.txt`
+   - Verify Python version is 3.8 or higher
+
+3. **Visualization errors**
+   - Ensure matplotlib backend is properly configured
+   - For headless environments, set `MPLBACKEND=Agg`
+
 ## Acknowledgments
 
-- Dataset sourced from Devabrat, M. (2022) - Predictive Maintenance on Ship's Main Engine using AI
+- Dataset sourced from: Devabrat, M. (2022). "Predictive Maintenance on Ship's Main Engine using AI"
+  - Available at: https://github.com/Devabrat-glitch/Predictive-Maintenance-of-Ships-Main-Engine-using-Deep-Learning
 - Built using scikit-learn, pandas, and other open-source libraries
 - Inspired by real-world industrial maintenance challenges
-# detecting-anomalous-activity

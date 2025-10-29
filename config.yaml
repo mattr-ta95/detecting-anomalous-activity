@@ -1,0 +1,90 @@
+# Ship Engine Anomaly Detection Configuration
+
+# Data settings
+data:
+  url: "https://raw.githubusercontent.com/Devabrat-glitch/Predictive-Maintenance-of-Ships-Main-Engine-using-Deep-Learning/main/engine.csv"
+  checksum: null  # Optional: Add SHA256 checksum for verification
+  raw_path: "data/raw/engine.csv"
+  processed_path: "data/processed/engine_processed.csv"
+
+  # Expected columns in dataset
+  columns:
+    - "Engine RPM"
+    - "Lubrication oil pressure"
+    - "Fuel pressure"
+    - "Coolant pressure"
+    - "Lubrication oil temperature"
+    - "Coolant temperature"
+
+# Preprocessing settings
+preprocessing:
+  handle_missing: "drop"  # Options: drop, fill_mean, fill_median
+  outlier_removal: false  # Remove extreme outliers before analysis
+  scaling: true  # Apply StandardScaler
+  random_state: 42
+
+# Anomaly detection models
+models:
+  # Interquartile Range (IQR) method
+  iqr:
+    enabled: true
+    multiplier: 1.5  # IQR multiplier for outlier detection
+    min_outlier_features: 2  # Minimum features that must be outliers
+
+  # One-Class SVM
+  one_class_svm:
+    enabled: true
+    kernel: "rbf"
+    gamma: "auto"
+    nu: 0.03  # Expected proportion of outliers (1-5%)
+    random_state: 42
+
+  # Isolation Forest
+  isolation_forest:
+    enabled: true
+    n_estimators: 100
+    contamination: 0.03  # Expected proportion of outliers (1-5%)
+    max_samples: "auto"
+    random_state: 42
+
+# Dimensionality reduction
+pca:
+  enabled: true
+  n_components: 2
+  random_state: 42
+
+# Visualization settings
+visualization:
+  style: "whitegrid"
+  palette: "Set2"
+  figure_dpi: 300
+  save_format: "png"  # Options: png, pdf, svg
+
+  plots:
+    box_plot: true
+    histogram: true
+    correlation_matrix: true
+    pca_scatter: true
+    feature_importance: false
+
+# Output settings
+output:
+  plots_dir: "results/plots"
+  reports_dir: "results/reports"
+  save_plots: true
+  save_report: true
+  verbose: true
+
+# Logging settings
+logging:
+  level: "INFO"  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "results/anomaly_detection.log"
+  console: true
+
+# Network settings (for data download)
+network:
+  timeout: 30  # seconds
+  retries: 3
+  backoff_factor: 2
+  verify_ssl: true
