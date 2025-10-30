@@ -43,6 +43,22 @@ pip install -r requirements.txt
 pip install -e .
 ```
 
+## Getting the Dataset
+
+⚠️ **Important:** The original dataset URL is no longer available. Choose one of these options:
+
+### Option 1: Generate Sample Data (Recommended)
+```bash
+python generate_sample_data.py
+```
+
+### Option 2: Download from IEEE DataPort
+1. Visit: https://ieee-dataport.org/open-access/predictive-maintenance-ships-main-engine-using-ai
+2. Login and download the dataset
+3. Place it at: `data/raw/engine.csv`
+
+See [DATASET_INFO.md](DATASET_INFO.md) for detailed instructions.
+
 ## Usage
 
 Run the main analysis script:
@@ -52,7 +68,7 @@ python ship_engine_anomaly_detection.py
 ```
 
 The script will:
-1. Load the engine dataset from the remote source
+1. Load the engine dataset (generates sample data if not found)
 2. Perform exploratory data analysis
 3. Apply statistical anomaly detection methods
 4. Train and evaluate machine learning models
@@ -218,10 +234,10 @@ Data Science & Machine Learning Engineer
 
 ### Common Issues
 
-1. **Dataset download fails**
-   - Check internet connection
-   - Verify URL in `config.yaml` is accessible
-   - Try downloading manually and placing in `data/raw/`
+1. **Dataset download fails (404 error)**
+   - The original GitHub URL is no longer available
+   - **Solution:** Run `python generate_sample_data.py` to create sample data
+   - Or download from IEEE DataPort (see [DATASET_INFO.md](DATASET_INFO.md))
 
 2. **Import errors**
    - Ensure all dependencies are installed: `pip install -r requirements.txt`
