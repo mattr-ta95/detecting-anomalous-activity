@@ -132,9 +132,9 @@ class TestAnomalyReport:
         }
 
         report = format_anomaly_report(results)
-        assert "IQR Method" in report
-        assert "One-Class SVM" in report
-        assert "Isolation Forest" in report
+        assert "Interquartile Range (IQR) Method:" in report
+        assert "One-Class SVM:" in report
+        assert "Isolation Forest:" in report
         assert "30" in report
         assert "25" in report
         assert "28" in report
